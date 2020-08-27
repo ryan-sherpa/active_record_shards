@@ -101,12 +101,12 @@ describe "connection switching" do
 
     describe "on_all_shards" do
       before do
-        @shard_0_master = ActiveRecord::Base.on_shard(0) { ActiveRecord::Base.connection }
-        @shard_1_master = ActiveRecord::Base.on_shard(1) { ActiveRecord::Base.connection }
-        refute_equal(@shard_0_master.select_value("SELECT DATABASE()"), @shard_1_master.select_value("SELECT DATABASE()"))
+        @shard_0_primary = ActiveRecord::Base.on_shard(0) { ActiveRecord::Base.connection }
+        @shard_1_primary = ActiveRecord::Base.on_shard(1) { ActiveRecord::Base.connection }
+        refute_equal(@shard_0_primary.select_value("SELECT DATABASE()"), @shard_1_primary.select_value("SELECT DATABASE()"))
       end
 
-      it "execute the block on all shard masters" do
+      it "execute the block on all shard primaries" do
         result = ActiveRecord::Base.on_all_shards do |shard|
           [ActiveRecord::Base.connection.select_value("SELECT DATABASE()"), shard]
         end
@@ -114,8 +114,8 @@ describe "connection switching" do
         database_shards = result.map(&:last)
 
         assert_equal(2, database_names.size)
-        assert_includes(database_names, @shard_0_master.select_value("SELECT DATABASE()"))
-        assert_includes(database_names, @shard_1_master.select_value("SELECT DATABASE()"))
+        assert_includes(database_names, @shard_0_primary.select_value("SELECT DATABASE()"))
+        assert_includes(database_names, @shard_1_primary.select_value("SELECT DATABASE()"))
 
         assert_equal(2, database_shards.size)
         assert_includes(database_shards, 0)
@@ -293,8 +293,8 @@ describe "connection switching" do
   end
 
   describe ".where.to_sql" do
-    it "doesn't use the master (for escaping)" do
-      with_unsharded_master_unavailable do
+    it "doesn't use the primary (for escaping)" do
+      with_unsharded_primary_unavailable do
         # This will (on_slave) load the schema for the where statments to bind
         # with. We could have DefaultSlavePatches wrap load_schema, but this
         # caused the Phenix test setup gem to have bootstrapping issues.
@@ -428,14 +428,14 @@ describe "connection switching" do
       it "default to the master database" do
         Account.create!
 
-        ActiveRecord::Base.on_replica { assert_using_master_db }
-        Account.on_replica { assert_using_master_db }
-        Ticket.on_replica  { assert_using_master_db }
+        ActiveRecord::Base.on_replica { assert_using_primary_db }
+        Account.on_replica { assert_using_primary_db }
+        Ticket.on_replica  { assert_using_primary_db }
       end
 
       it "successfully execute queries" do
         Account.create!
-        assert_using_master_db
+        assert_using_primary_db
 
         assert_equal(Account.count, ActiveRecord::Base.on_replica { Account.count })
         assert_equal(Account.count, Account.on_replica { Account.count })
@@ -444,7 +444,7 @@ describe "connection switching" do
 
     describe "with replica configuration" do
       it "successfully execute queries" do
-        assert_using_master_db
+        assert_using_primary_db
         Account.create!
 
         assert_equal(1, Account.count)
@@ -452,33 +452,33 @@ describe "connection switching" do
       end
 
       it "support global on_replica blocks" do
-        assert_using_master_db
-        assert_using_master_db
+        assert_using_primary_db
+        assert_using_primary_db
 
         ActiveRecord::Base.on_replica do
           assert_using_replica_db
           assert_using_replica_db
         end
 
-        assert_using_master_db
-        assert_using_master_db
+        assert_using_primary_db
+        assert_using_primary_db
       end
 
       it "support conditional methods" do
-        assert_using_master_db
+        assert_using_primary_db
 
         Account.on_replica_if(true) do
           assert_using_replica_db
         end
 
-        assert_using_master_db
+        assert_using_primary_db
 
         Account.on_replica_if(false) do
-          assert_using_master_db
+          assert_using_primary_db
         end
 
         Account.on_replica_unless(true) do
-          assert_using_master_db
+          assert_using_primary_db
         end
 
         Account.on_replica_unless(false) do
@@ -689,14 +689,14 @@ describe "connection switching" do
 
     describe "replica proxy" do
       it "successfully execute queries" do
-        assert_using_master_db
+        assert_using_primary_db
         Account.create!
 
         refute_equal Account.count, Account.on_replica.count
       end
 
       it "work on association collections" do
-        assert_using_master_db
+        assert_using_primary_db
         account = Account.create!
 
         ActiveRecord::Base.on_shard(0) do
