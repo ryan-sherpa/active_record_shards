@@ -69,13 +69,15 @@ module ActiveRecordShards
     end
     alias_method :on_slave_unless, :on_replica_unless
 
-    def on_master_if(condition, &block)
-      condition ? on_master(&block) : yield
+    def on_primary_if(condition, &block)
+      condition ? on_primary(&block) : yield
     end
+    alias_method :on_master_if, :on_primary_if
 
-    def on_master_unless(condition, &block)
-      on_master_if(!condition, &block)
+    def on_primary_unless(condition, &block)
+      on_primary_if(!condition, &block)
     end
+    alias_method :on_master_unless, :on_primary_unless
 
     def on_master_or_replica(which, &block)
       if block_given?

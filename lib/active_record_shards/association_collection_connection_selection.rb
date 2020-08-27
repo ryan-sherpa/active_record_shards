@@ -12,13 +12,15 @@ module ActiveRecordShards
     end
     alias_method :on_slave_unless, :on_replica_unless
 
-    def on_master_if(condition)
+    def on_primary_if(condition)
       condition ? on_master : self
     end
+    alias_method :on_master_if, :on_primary_if
 
-    def on_master_unless(condition)
-      on_master_if(!condition)
+    def on_primary_unless(condition)
+      on_primary_if(!condition)
     end
+    alias_method :on_master_unless, :on_primary_unless
 
     def on_replica
       MasterReplicaProxy.new(self, :replica)

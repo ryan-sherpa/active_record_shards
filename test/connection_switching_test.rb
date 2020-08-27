@@ -237,9 +237,9 @@ describe "connection switching" do
         assert_includes(Account.column_names, 'foo')
       end
 
-      it "ignores master/transactions" do
+      it "ignores primary/transactions" do
         assert_using_database('ars_test', Account)
-        Account.on_master { assert_includes(Account.column_names, 'foo') }
+        Account.on_primary { assert_includes(Account.column_names, 'foo') }
       end
     end
 
@@ -490,9 +490,9 @@ describe "connection switching" do
         before do
           Account.on_replica_by_default = true
 
-          Account.on_master.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'master_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
-          assert(Account.on_master.find(1000))
-          assert_equal('master_name', Account.on_master.find(1000).name)
+          Account.on_primary.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'master_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
+          assert(Account.on_primary.find(1000))
+          assert_equal('master_name', Account.on_primary.find(1000).name)
 
           Account.on_replica.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'replica_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
 
@@ -542,7 +542,7 @@ describe "connection switching" do
         end
 
         it "not unset readonly" do
-          @model = Account.on_master.readonly.first
+          @model = Account.on_primary.readonly.first
           assert(@model.readonly?)
         end
 
@@ -607,18 +607,18 @@ describe "connection switching" do
           AccountThing.on_replica_by_default = false
         end
 
-        it "Allow override using on_master" do
-          model = Account.on_master.find(1000)
+        it "Allow override using on_primary" do
+          model = Account.on_primary.find(1000)
           assert_equal "master_name", model.name
         end
 
-        it "not override on_master with on_replica" do
-          model = Account.on_master { Account.on_replica.find(1000) }
+        it "not override on_primary with on_replica" do
+          model = Account.on_primary { Account.on_replica.find(1000) }
           assert_equal "master_name", model.name
         end
 
-        it "override on_replica with on_master" do
-          model = Account.on_replica { Account.on_master.find(1000) }
+        it "override on_replica with on_primary" do
+          model = Account.on_replica { Account.on_primary.find(1000) }
           assert_equal "master_name", model.name
         end
 
