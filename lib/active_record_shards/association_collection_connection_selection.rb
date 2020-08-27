@@ -13,7 +13,7 @@ module ActiveRecordShards
     alias_method :on_slave_unless, :on_replica_unless
 
     def on_primary_if(condition)
-      condition ? on_master : self
+      condition ? on_primary : self
     end
     alias_method :on_master_if, :on_primary_if
 

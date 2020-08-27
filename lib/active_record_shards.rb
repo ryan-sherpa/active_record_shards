@@ -54,7 +54,7 @@ ActiveRecordShards::Deprecation.deprecate_methods(
   ActiveRecordShards::ConnectionSwitcher,
   on_slave_if: :on_replica_if,
   on_slave_unless: :on_replica_unless,
-  on_master_or_slave: :on_master_or_replica,
+  on_master_or_slave: :on_primary_or_replica,
   on_slave: :on_replica,
   on_master: :on_primary,
   on_master_if: :on_primary_if,

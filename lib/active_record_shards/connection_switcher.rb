@@ -79,14 +79,14 @@ module ActiveRecordShards
     end
     alias_method :on_master_unless, :on_primary_unless
 
-    def on_master_or_replica(which, &block)
+    def on_primary_or_replica(which, &block)
       if block_given?
         on_cx_switch_block(which, &block)
       else
         MasterReplicaProxy.new(self, which)
       end
     end
-    alias_method :on_master_or_slave, :on_master_or_replica
+    alias_method :on_master_or_slave, :on_primary_or_replica
 
     # Executes queries using the replica database. Fails over to master if no replica is found.
     # if you want to execute a block of code on the replica you can go:
@@ -98,12 +98,12 @@ module ActiveRecordShards
     # For one-liners you can simply do
     #   Account.on_replica.first
     def on_replica(&block)
-      on_master_or_replica(:replica, &block)
+      on_primary_or_replica(:replica, &block)
     end
     alias_method :on_slave, :on_replica
 
     def on_primary(&block)
-      on_master_or_replica(:master, &block)
+      on_primary_or_replica(:master, &block)
     end
     alias_method :on_master, :on_primary
 
@@ -219,7 +219,7 @@ module ActiveRecordShards
       end
 
       def method_missing(method, *args, &block) # rubocop:disable Style/MethodMissingSuper, Style/MissingRespondToMissing
-        @target.on_master_or_replica(@which) { @target.send(method, *args, &block) }
+        @target.on_primary_or_replica(@which) { @target.send(method, *args, &block) }
       end
     end
 
