@@ -100,9 +100,10 @@ module ActiveRecordShards
     end
     alias_method :on_slave, :on_replica
 
-    def on_master(&block)
+    def on_primary(&block)
       on_master_or_replica(:master, &block)
     end
+    alias_method :on_master, :on_primary
 
     # just to ease the transition from replica to active_record_shards
     alias_method :with_slave, :on_replica

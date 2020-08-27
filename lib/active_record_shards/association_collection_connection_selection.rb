@@ -25,9 +25,10 @@ module ActiveRecordShards
     end
     alias_method :on_slave, :on_replica
 
-    def on_master
+    def on_primary
       MasterReplicaProxy.new(self, :master)
     end
+    alias_method :on_master, :on_primary
 
     class MasterReplicaProxy
       def initialize(association_collection, which)
