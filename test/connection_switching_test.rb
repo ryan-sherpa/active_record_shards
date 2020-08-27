@@ -351,7 +351,7 @@ describe "connection switching" do
     end
 
     describe "shard switching" do
-      it "just stay on the master db" do
+      it "just stay on the primary db" do
         if ActiveRecord::VERSION::MAJOR >= 5
           main_spec_name = spec_name
           shard_spec_name = ActiveRecord::Base.on_shard(0) { spec_name }
@@ -396,7 +396,7 @@ describe "connection switching" do
         end
       end
 
-      it "execute the block on all shard masters" do
+      it "execute the block on all shard primaries" do
         assert_equal([ActiveRecord::Base.connection.select_value("SELECT DATABASE()")], @database_names)
       end
     end
@@ -425,7 +425,7 @@ describe "connection switching" do
         Thread.current[:shard_selection] = nil # drop caches
       end
 
-      it "default to the master database" do
+      it "default to the primary database" do
         Account.create!
 
         ActiveRecord::Base.on_replica { assert_using_primary_db }
@@ -490,9 +490,9 @@ describe "connection switching" do
         before do
           Account.on_replica_by_default = true
 
-          Account.on_primary.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'master_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
+          Account.on_primary.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'primary_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
           assert(Account.on_primary.find(1000))
-          assert_equal('master_name', Account.on_primary.find(1000).name)
+          assert_equal('primary_name', Account.on_primary.find(1000).name)
 
           Account.on_replica.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'replica_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
 
@@ -533,12 +533,12 @@ describe "connection switching" do
         end
       end
 
-      describe "a model loaded with the master" do
+      describe "a model loaded with the primary" do
         before do
-          Account.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'master_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
+          Account.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'primary_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
           @model = Account.first
           assert(@model)
-          assert_equal('master_name', @model.name)
+          assert_equal('primary_name', @model.name)
         end
 
         it "not unset readonly" do
@@ -559,11 +559,11 @@ describe "connection switching" do
         before do
           Account.on_replica_by_default = true
           Person.on_replica_by_default = true
-          Account.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'master_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
+          Account.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'primary_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
           Account.on_replica.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1000, 'replica_name', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
           Account.on_replica.connection.execute("INSERT INTO accounts (id, name, created_at, updated_at) VALUES(1001, 'replica_name2', '2009-12-04 20:18:48', '2009-12-04 20:18:48')")
 
-          Person.connection.execute("REPLACE INTO people(id, name) VALUES(10, 'master person')")
+          Person.connection.execute("REPLACE INTO people(id, name) VALUES(10, 'primary person')")
           Person.on_replica.connection.execute("REPLACE INTO people(id, name) VALUES(20, 'replica person')")
 
           Account.connection.execute("INSERT INTO account_people(account_id, person_id) VALUES(1000, 10)")
@@ -609,17 +609,17 @@ describe "connection switching" do
 
         it "Allow override using on_primary" do
           model = Account.on_primary.find(1000)
-          assert_equal "master_name", model.name
+          assert_equal "primary_name", model.name
         end
 
         it "not override on_primary with on_replica" do
           model = Account.on_primary { Account.on_replica.find(1000) }
-          assert_equal "master_name", model.name
+          assert_equal "primary_name", model.name
         end
 
         it "override on_replica with on_primary" do
           model = Account.on_replica { Account.on_primary.find(1000) }
-          assert_equal "master_name", model.name
+          assert_equal "primary_name", model.name
         end
 
         it "propogate the on_replica_by_default reader to inherited classes" do
@@ -700,13 +700,13 @@ describe "connection switching" do
         account = Account.create!
 
         ActiveRecord::Base.on_shard(0) do
-          account.tickets.create! title: 'master ticket'
+          account.tickets.create! title: 'primary ticket'
 
           Ticket.on_replica do
             account.tickets.create! title: 'replica ticket'
           end
 
-          assert_equal "master ticket", account.tickets.first.title
+          assert_equal "primary ticket", account.tickets.first.title
           assert_equal "replica ticket", account.tickets.on_replica.first.title
         end
       end

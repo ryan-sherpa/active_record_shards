@@ -26,7 +26,7 @@ describe ActiveRecordShards::ConfigurationParser do
     end
 
     describe "shard a" do
-      describe "master" do
+      describe "primary" do
         before { @conf = @exploded_conf["test_shard_500"] }
         it "be exploded" do
           @conf["shard_names"] = @conf["shard_names"].to_set
@@ -62,7 +62,7 @@ describe ActiveRecordShards::ConfigurationParser do
     end
 
     describe "shard b" do
-      describe "master" do
+      describe "primary" do
         before { @conf = @exploded_conf["test_shard_501"] }
         it "be exploded" do
           @conf["shard_names"] = @conf["shard_names"].to_set
