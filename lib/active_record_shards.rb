@@ -81,5 +81,3 @@ ActiveRecordShards::Deprecation.deprecate_methods(
   on_slave?: :on_replica?,
   :on_slave= => :on_replica=
 )
-
-
