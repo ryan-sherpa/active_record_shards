@@ -88,7 +88,7 @@ module ActiveRecordShards
     end
     alias_method :on_master_or_slave, :on_primary_or_replica
 
-    # Executes queries using the replica database. Fails over to master if no replica is found.
+    # Executes queries using the replica database. Fails over to primary if no replica is found.
     # if you want to execute a block of code on the replica you can go:
     #   Account.on_replica do
     #     Account.first
@@ -103,7 +103,7 @@ module ActiveRecordShards
     alias_method :on_slave, :on_replica
 
     def on_primary(&block)
-      on_primary_or_replica(:master, &block)
+      on_primary_or_replica(:primary, &block)
     end
     alias_method :on_master, :on_primary
 
@@ -114,7 +114,7 @@ module ActiveRecordShards
 
     def on_cx_switch_block(which, force: false, construct_ro_scope: nil, &block)
       @disallow_replica ||= 0
-      @disallow_replica += 1 if which == :master
+      @disallow_replica += 1 if which == :primary
 
       switch_to_replica = force || @disallow_replica.zero?
       old_options = current_shard_selection.options
@@ -129,7 +129,7 @@ module ActiveRecordShards
         readonly.scoping(&block)
       end
     ensure
-      @disallow_replica -= 1 if which == :master
+      @disallow_replica -= 1 if which == :primary
       switch_connection(old_options) if old_options
     end
 
@@ -172,6 +172,11 @@ module ActiveRecordShards
 
         if options.key?(:replica)
           current_shard_selection.on_replica = options[:replica]
+        end
+
+        if options.key?(:master)
+          ActiveRecordShards::Deprecation.warn('the `:master` option should be replaced with `:primary`!')
+          options[:primary] ||= options.delete(:master)
         end
 
         if options.key?(:shard)

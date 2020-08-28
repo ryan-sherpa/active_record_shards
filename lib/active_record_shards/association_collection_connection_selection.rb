@@ -28,7 +28,7 @@ module ActiveRecordShards
     alias_method :on_slave, :on_replica
 
     def on_primary
-      PrimaryReplicaProxy.new(self, :master)
+      PrimaryReplicaProxy.new(self, :primary)
     end
     alias_method :on_master, :on_primary
 
