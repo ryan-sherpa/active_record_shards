@@ -23,16 +23,16 @@ module ActiveRecordShards
     alias_method :on_master_unless, :on_primary_unless
 
     def on_replica
-      MasterReplicaProxy.new(self, :replica)
+      PrimaryReplicaProxy.new(self, :replica)
     end
     alias_method :on_slave, :on_replica
 
     def on_primary
-      MasterReplicaProxy.new(self, :master)
+      PrimaryReplicaProxy.new(self, :master)
     end
     alias_method :on_master, :on_primary
 
-    class MasterReplicaProxy
+    class PrimaryReplicaProxy
       def initialize(association_collection, which)
         @association_collection = association_collection
         @which = which
@@ -44,6 +44,6 @@ module ActiveRecordShards
       end
     end
 
-    MasterSlaveProxy = MasterReplicaProxy
+    MasterSlaveProxy = PrimaryReplicaProxy
   end
 end

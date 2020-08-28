@@ -83,7 +83,7 @@ module ActiveRecordShards
       if block_given?
         on_cx_switch_block(which, &block)
       else
-        MasterReplicaProxy.new(self, which)
+        PrimaryReplicaProxy.new(self, which)
       end
     end
     alias_method :on_master_or_slave, :on_primary_or_replica
@@ -212,7 +212,7 @@ module ActiveRecordShards
       with_default_shard { table_exists_without_default_shard? }
     end
 
-    class MasterReplicaProxy
+    class PrimaryReplicaProxy
       def initialize(target, which)
         @target = target
         @which = which
@@ -223,7 +223,7 @@ module ActiveRecordShards
       end
     end
 
-    MasterSlaveProxy = MasterReplicaProxy
+    MasterSlaveProxy = PrimaryReplicaProxy
   end
 end
 
