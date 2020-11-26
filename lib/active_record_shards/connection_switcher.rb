@@ -114,7 +114,9 @@ module ActiveRecordShards
 
     def on_cx_switch_block(which, force: false, construct_ro_scope: nil, &block)
       @disallow_replica ||= 0
-      @disallow_replica += 1 if which == :primary
+      @disallow_replica += 1 if [:primary, :master].include?(which)
+
+      ActiveRecordShards::Deprecation.warn('the `:master` option should be replaced with `:primary`!') if which == :master
 
       switch_to_replica = force || @disallow_replica.zero?
       old_options = current_shard_selection.options
@@ -129,7 +131,7 @@ module ActiveRecordShards
         readonly.scoping(&block)
       end
     ensure
-      @disallow_replica -= 1 if which == :primary
+      @disallow_replica -= 1 if [:primary, :master].include?(which)
       switch_connection(old_options) if old_options
     end
 
