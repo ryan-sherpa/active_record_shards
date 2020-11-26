@@ -295,8 +295,8 @@ describe "connection switching" do
   describe ".where.to_sql" do
     it "doesn't use the primary (for escaping)" do
       with_unsharded_primary_unavailable do
-        # This will (on_slave) load the schema for the where statments to bind
-        # with. We could have DefaultSlavePatches wrap load_schema, but this
+        # This will (on_replica) load the schema for the where statments to bind
+        # with. We could have DefaultReplicaPatches wrap load_schema, but this
         # caused the Phenix test setup gem to have bootstrapping issues.
         Account.columns
 
