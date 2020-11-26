@@ -176,11 +176,6 @@ module ActiveRecordShards
           current_shard_selection.on_replica = options[:replica]
         end
 
-        if options.key?(:master)
-          ActiveRecordShards::Deprecation.warn('the `:master` option should be replaced with `:primary`!')
-          options[:primary] ||= options.delete(:master)
-        end
-
         if options.key?(:shard)
           unless configurations[shard_env]
             raise "Did not find #{shard_env} in configurations, did you forget to add it to your database config? (configurations: #{configurations.keys.inspect})"
