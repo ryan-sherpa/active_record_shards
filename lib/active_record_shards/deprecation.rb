@@ -6,7 +6,6 @@ module ActiveRecordShards
     # For example, this allows us to silence our own deprecation warnings in test while still being
     # able to fail tests for upstream deprecation warnings.
     def behavior
-      ActiveSupport::Deprecation.behavior = :log
       @behavior ||= ActiveSupport::Deprecation.behavior
     end
   end
