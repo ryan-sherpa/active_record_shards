@@ -23,5 +23,6 @@ other methods changed:
 1. `exists_with_default_slave` => `exists_with_default_replica`
 1. `from_slave` => `from_replica`
 1. `initialize_shard_and_slave` => `initialize_shard_and_replica`
+1. `ShardSelection#options` no longer uses `:slave`, if this method was overridden ensure it returns `:replica` instead of `:slave`: `{ shard: .., replica: ... }`
 
-SQL comments added (see [debugging](/README.md#debugging)) will now log `... /* replica */` instead of `... /* slave */`
+SQL comments (see [debugging](/README.md#debugging)) will now log `... /* replica */` instead of `... /* slave */`
