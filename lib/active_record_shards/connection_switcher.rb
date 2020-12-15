@@ -138,6 +138,8 @@ module ActiveRecordShards
     end
 
     def shard_names
+      return [] if configurations.blank?
+
       unless config = configurations[shard_env]
         raise "Did not find #{shard_env} in configurations, did you forget to add it to your database config? (configurations: #{configurations.keys.inspect})"
       end
@@ -155,7 +157,7 @@ module ActiveRecordShards
           current_shard_selection.on_slave = options[:slave]
         end
 
-        if options.key?(:shard)
+        if options.key?(:shard) && options[:shard] && options[:shard] != :_no_shard
           unless configurations[shard_env]
             raise "Did not find #{shard_env} in configurations, did you forget to add it to your database config? (configurations: #{configurations.keys.inspect})"
           end
