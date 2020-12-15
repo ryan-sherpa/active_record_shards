@@ -85,7 +85,7 @@ module ActiveRecordShards
   module MigrationClassExtension
     attr_accessor :migration_shard
 
-    def shard(arg = nil)
+    def shard(arg = :none)
       self.migration_shard = arg
     end
   end
